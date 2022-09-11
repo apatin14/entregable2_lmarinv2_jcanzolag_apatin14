@@ -1,5 +1,5 @@
 import pickle
-from hashing256 import Hashing256
+from db_client.hashing256 import Hashing256
 
 
 class serialize:
@@ -69,14 +69,3 @@ class serialize:
 
         return True
 
-
-hash = Hashing256()
-test = serialize(hash)
-
-test.write_record("test", "testing")
-test.write_record("tester", "test")
-print(test.search_record("testing"))
-test.update_record("tester", "valor cambiado")
-print(test.search_record("tester"))
-test.delete_record("test")
-print(test.search_record("test"))
