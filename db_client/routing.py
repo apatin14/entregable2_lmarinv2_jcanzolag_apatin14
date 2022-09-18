@@ -13,14 +13,25 @@ class routingTier:
 
     def test(self, key):
         return self.hash256.encrypt(key)
+      
+    def create_key_value(self, key, value):
+      return
+    
 
-    def findFile(self, key):
+    def find_by_key(self, key):
         key_object = eval(self.hash256.decrypt(key))
         #node_port = self.hash_table.get(key_object.node)
         #partition_number = key_object.partition
         #key_value = key_object.partition
 
         print(key_object)
+        
+    def update_by_key(self, key, value):
+      return
+    
+    def delete_by_key(self, key, value):
+      return 
+      
 
 
 router = routingTier(50)
