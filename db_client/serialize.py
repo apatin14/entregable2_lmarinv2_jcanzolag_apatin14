@@ -1,5 +1,5 @@
 import pickle
-from db_client.hashing256 import Hashing256
+from hashing256 import Hashing256
 
 
 class serialize:

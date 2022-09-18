@@ -1,3 +1,8 @@
+from Crypto.Cipher import AES
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Random import get_random_bytes
+from Crypto.Hash import SHA256
+
 """This Python module is an implementation of the SHA-256 algorithm.
 From https://github.com/keanemind/Python-SHA-256"""
 
@@ -14,6 +19,11 @@ K = [
 
 
 class Hashing256:
+
+    def __init__(self):
+        self.key_buffer = PBKDF2('proyecto1'.encode("ascii"), get_random_bytes(
+            32), 32, count=15000, hmac_hash_module=SHA256)
+
     def generate_hash(self, message: bytearray) -> bytearray:
         """Return a SHA-256 hash from the message passed.
         The argument should be a bytes, bytearray, or
@@ -124,7 +134,7 @@ class Hashing256:
                (num >> 3))
         return num
 
-    def _sigma1(self,num: int):
+    def _sigma1(self, num: int):
         """As defined in the specification."""
         num = (self._rotate_right(num, 17) ^
                self._rotate_right(num, 19) ^
@@ -149,10 +159,25 @@ class Hashing256:
         """As defined in the specification."""
         return (x & y) ^ (~x & z)
 
-    def _maj(self,x: int, y: int, z: int):
+    def _maj(self, x: int, y: int, z: int):
         """As defined in the specification."""
         return (x & y) ^ (x & z) ^ (y & z)
 
     def _rotate_right(self, num: int, shift: int, size: int = 32):
         """Rotate an integer right."""
         return (num >> shift) | (num << size - shift)
+
+    def resize_length(self, string):
+        # resizes the String to a size divisible by 16 (needed for this Cipher)
+        return string.rjust((len(string) // 16 + 1) * 16)
+
+    def encrypt(self, url):
+        # Converts the string to bytes and encodes them with your Cipher
+        cipher = AES.new(self.key_buffer, AES.MODE_CBC)
+        self.iv = cipher.iv
+        return cipher.encrypt(self.resize_length(url).encode())
+
+    def decrypt(self, text):
+        # Converts the string to bytes and decodes them with your Cipher
+        cipher = AES.new(self.key_buffer, AES.MODE_CBC, self.iv)
+        return cipher.decrypt(text).decode().lstrip()

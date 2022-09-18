@@ -8,14 +8,6 @@ routes_record = APIRouter()
 _hash256=Hashing256()
 _serilize =serialize(_hash256)
 
-
-"""
-@routes_record.get("/example")
-def example():
-    return "Example"
-
-"""
-
 @routes_record.post("/create", response_model=Record)
 def create(record: Record):
     try:
