@@ -6,6 +6,9 @@ class HashTable:
     def create_buckets(self):
         return [[] for _ in range(self.size)]
 
+    def get_bucket(self, key):
+        return self.hash_table[hash(key) % self.size]
+
     def append(self, key, val):
         bucket = self.hash_table[hash(key) % self.size]
         found_key, index, record_val = self.is_key(bucket, key)
