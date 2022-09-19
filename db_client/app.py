@@ -1,46 +1,62 @@
-from fastapi import APIRouter
-from db_client.serialize import serialize
-from schemas.record import Record
+from fastapi import FastAPI
+from pydantic import BaseModel, Field
+from serialize import serialize
+import typing
 
-routes_record = APIRouter()
+_serilize = serialize()
+app = FastAPI()
+    
+class Record(BaseModel):
+    key: str
+    value: typing.Any
 
-_serilize =serialize()
 
-@routes_record.post("/create", response_model=Record)
+@app.post("/create", response_model=Record)
 def create(record: Record):
     try:
-        #OPERATION CACHE
-
         _serilize.write_record(record.key, record.value)
         return record
 
     except Exception as e:
         return e
 
-@routes_record.get("/get/{id}")
+
+@app.post("/create", response_model=Record)
+def create(record: Record):
+    try:
+        _serilize.write_record(record.key, record.value)
+        return record
+
+    except Exception as e:
+        return e
+
+
+@app.get("/get/{id}")
 def get(id: str):
     try:
-        #OPERATION CACHE
+        # OPERATION CACHE
         record = _serilize.search_record(id)
         return record
 
     except Exception as e:
         return e
 
-@routes_record.get("/getall")
+
+@app.get("/getall")
 def get():
     try:
-        #OPERATION CACHE
+        # OPERATION CACHE
         records = _serilize.read_records()
         return records
 
     except Exception as e:
         return e
 
-@routes_record.put("/update", response_model=Record)
+
+@app.put("/update", response_model=Record)
 def update(record: Record):
     try:
-        #OPERATION CACHE
+        # OPERATION CACHE
 
         _serilize.update_record(record.key, record.value)
 
@@ -49,10 +65,11 @@ def update(record: Record):
     except Exception as e:
         return e
 
-@routes_record.delete("/delete/{id}")
+
+@app.delete("/delete/{id}")
 def delete(id: str):
     try:
-        #OPERATION CACHE
+        # OPERATION CACHE
         _serilize.delete_record(id)
 
         return{

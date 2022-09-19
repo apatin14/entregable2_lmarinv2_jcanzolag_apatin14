@@ -1,11 +1,10 @@
 import pickle
 from hashing256 import Hashing256
 
-
 class serialize:
 
-    def __init__(self, hashing: Hashing256):
-        self.hashing = hashing
+    def __init__(self):
+        self.hashing = Hashing256()
 
     def write_record(self, key, value):
         records = self.read_records()
@@ -68,4 +67,3 @@ class serialize:
         outfile.close()
 
         return True
-
