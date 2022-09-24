@@ -9,18 +9,7 @@ app = FastAPI()
 class Record(BaseModel):
     key: str
     value: typing.Any
-
-
-@app.post("/create", response_model=Record)
-def create(record: Record):
-    try:
-        _serilize.write_record(record.key, record.value)
-        return record
-
-    except Exception as e:
-        return e
-
-
+    
 @app.post("/create", response_model=Record)
 def create(record: Record):
     try:

@@ -3,44 +3,110 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Hash import SHA256
 from hashTable import HashTable
 import requests
-import json
 
 
 class routingTier:
 
     def __init__(self, partitions_number):
         key_name = 'proyecto1'.encode("ascii")
+        self.current_partition = 0
+        self.partition_number = partitions_number
         self.hash_table = HashTable(partitions_number)
         self.key_buffer = PBKDF2(
             key_name, key_name, 32, count=1000, hmac_hash_module=SHA256)
 
     def create_key_value(self, key, value):
-        encrypted_key = self.encrypt(json.dumps(key))
-        key_object = ""
-        print(key['key'])
-        self.hash_table.append(encrypted_key, "http://52.204.153.196")
-        api_url = self.hash_table.get(encrypted_key) + "/records/create"
-        response = requests.post(api_url, json={"key": key['key'], "value": value})
-        print(response.json())
-        bucket = self.hash_table.get_bucket(encrypted_key)
-        print(bucket)
-        for index, record in enumerate(bucket):
-            print(record)
-        return
+        key_name = 'partition' + self.current_partition + ":" + key
+        key_hash = self.encrypt(key_name)
+        api_url = self.hash_table.get(
+            'partition' + self.current_partition) + "/records/create"
+        response = requests.post(api_url, json={key: key_hash, value: value})
+        if(response.json()):
+            if(self.current_partition >= self.partition_number):
+                self.current_partition = 0
+            else:
+                self.current_partition += 1
+            return {
+                "id": key_hash,
+                "message": "Sucess save key/value",
+                "status": False
+            }
+        else:
+            return {
+                "message": "Error saving key/value",
+                "status": False
+            }
 
-    def find_by_key(self, key):
-        key_object = eval(self.decrypt(key))
-        """ node_dir = self.hash_table.get(key_object.node)
-        partition_number = key_object.partition
-        key_value = key_object.partition """
+    def find_by_id(self, id):
+        try:
+            decrypted_data = self.decrypt(id).split(":")
+            partition = decrypted_data[0]
+            api_url = self.hash_table.get(partition) + "/records/get/" + id
+            response = requests.get(api_url)
+            if(response.json()):
+                return {
+                    "key": key,
+                    "value": response.json(),
+                    "message": "Sucess save key/value",
+                    "status": True
+                }
+            else:
+                return {
+                    "message": "Error getting key/value",
+                    "status": False
+                }
 
-        print(key_object)
+        except(err):
+            return {
+                "message": "Id error value",
+                "status": False
+            }
 
-    def update_by_key(self, key, value):
-        return
+    def update_by_id(self, id, value):
+        try:
+            decrypted_data = self.decrypt(id).split(":")
+            partition = decrypted_data[0]
+            api_url = self.hash_table.get(partition) + "/records/update"
+            response = requests.get(api_url, json={"key": id, "value": value})
+            if(response.json()):
+                return {
+                    "message": "Sucess update value",
+                    "status": True
+                }
+            else:
+                return {
+                    "message": "Error updating key/value",
+                    "status": False
+                }
 
-    def delete_by_key(self, key, value):
-        return
+        except(err):
+            return {
+                "message": "Id error value",
+                "status": False
+            }
+
+    def delete_by_key(self, id):
+        try:
+            decrypted_data = self.decrypt(id).split(":")
+            partition = decrypted_data[0]
+            api_url = self.hash_table.get(partition) + "/records/delete/"+id
+            response = requests.delete(api_url)
+            if(response.json()):
+                return {
+                    "message": "Sucess delete key/value",
+                    "status": True
+                }
+            else:
+                return {
+                    "message": "Error deleting key/value",
+                    "status": False
+                }
+
+        except(err):
+            return {
+                "message": "Id error value",
+                "status": False
+            }
 
     def resize_length(self, string):
         # resizes the String to a size divisible by 16 (needed for this Cipher)
@@ -56,11 +122,3 @@ class routingTier:
         # Converts the string to bytes and decodes them with your Cipher
         cipher = AES.new(self.key_buffer, AES.MODE_CBC)
         return cipher.decrypt(text).decode().lstrip()
-
-
-router = routingTier(50)
-dict = {"node": 1231, "partition": 1, "key": "key"}
-router.create_key_value(dict, "noname")
-""" router.findFile(test) """
-
-""" router.findFile(test) """

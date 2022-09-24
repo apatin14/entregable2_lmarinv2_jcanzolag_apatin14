@@ -1,62 +1,44 @@
 from fastapi import APIRouter
-from db_client.serialize import serialize
-from schemas.record import Record
+from router_server.routing import routingTier
+from schemas.record import Record, Update_Record_Dto
 
-routes_record = APIRouter()
+_routingTier = routingTier(5)
 
-_serilize =serialize()
 
 @routes_record.post("/create", response_model=Record)
 def create(record: Record):
     try:
-        #OPERATION CACHE
+        # OPERATION CACHE
 
-        _serilize.write_record(record.key, record.value)
+        _routingTier.create_key_value(record.key, record.value)
         return record
 
     except Exception as e:
         return e
+
 
 @routes_record.get("/get/{id}")
 def get(id: str):
     try:
-        #OPERATION CACHE
-        record = _serilize.search_record(id)
-        return record
-
-    except Exception as e:
-        return e
-
-@routes_record.get("/getall")
-def get():
-    try:
-        #OPERATION CACHE
-        records = _serilize.read_records()
-        return records
+        # OPERATION CACHE
+        return _routingTier.find_by_id(id)
 
     except Exception as e:
         return e
 
 @routes_record.put("/update", response_model=Record)
-def update(record: Record):
+def update(record: Update_Record_Dto):
     try:
-        #OPERATION CACHE
-
-        _serilize.update_record(record.key, record.value)
-
-        return record
+        # OPERATION CACHE
+        return _routingTier.update_by_key(record.id, record.value)
 
     except Exception as e:
         return e
 
+
 @routes_record.delete("/delete/{id}")
 def delete(id: str):
     try:
-        #OPERATION CACHE
-        _serilize.delete_record(id)
-
-        return{
-            "message": "Success"
-        }
+        return _routingTier.delete_by_id(id)
     except Exception as e:
         return e
