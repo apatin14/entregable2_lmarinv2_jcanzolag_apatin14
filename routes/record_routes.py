@@ -1,15 +1,15 @@
 from fastapi import APIRouter
 from router_server.routing import routingTier
-from schemas.record import Record, Update_Record_Dto
+from schemas.record import Record, update_record_dto
 
 _routingTier = routingTier(5)
+routes_record = APIRouter()
 
 
 @routes_record.post("/create", response_model=Record)
 def create(record: Record):
     try:
         # OPERATION CACHE
-
         _routingTier.create_key_value(record.key, record.value)
         return record
 
@@ -26,8 +26,9 @@ def get(id: str):
     except Exception as e:
         return e
 
+
 @routes_record.put("/update", response_model=Record)
-def update(record: Update_Record_Dto):
+def update(record: update_record_dto):
     try:
         # OPERATION CACHE
         return _routingTier.update_by_key(record.id, record.value)

@@ -59,11 +59,12 @@ class routingTier:
             api_url = self.hash_table.get(partition) + "/records/get/" + id
             api_url_replication = self.hash_table.get(
                 partition_replication) + "/records/get/" + id
-            response = requests.get(api_url | api_url_replication.json())
-            if(response.json()):
+            response = requests.get(api_url)
+            response_replication = requests.get(api_url_replication)
+            if(response.json()|response_replication.json()):
                 return {
                     "key": key,
-                    "value": response.json(),
+                    "value": response.json() | response_replication.json(),
                     "message": "Sucess save key/value",
                     "status": True
                 }
@@ -108,7 +109,7 @@ class routingTier:
                 "status": False
             }
 
-    def delete_by_key(self, id):
+    def delete_by_id(self, id):
         try:
             decrypted_data = self.decrypt(id).split(":")
             partition = decrypted_data[0]

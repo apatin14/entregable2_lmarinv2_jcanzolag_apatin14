@@ -5,7 +5,7 @@ class Record(BaseModel):
     key: str 
     value: typing.Any
     
-class Update_Record_Dto:
+class update_record_dto:
     id: str
     value: typing.Any
     
