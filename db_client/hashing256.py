@@ -21,8 +21,8 @@ K = [
 class Hashing256:
 
     def __init__(self):
-        self.key_buffer = PBKDF2('proyecto1'.encode("ascii"), get_random_bytes(
-            32), 32, count=15000, hmac_hash_module=SHA256)
+        key_name = 'proyecto1'.encode("ascii")
+        self.key_buffer = PBKDF2(key_name, key_name, 32, count=1000, hmac_hash_module=SHA256)
 
     def generate_hash(self, message: bytearray) -> bytearray:
         """Return a SHA-256 hash from the message passed.
