@@ -1,15 +1,28 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from serialize import serialize
 import typing
 
 _serilize = serialize()
 app = FastAPI()
-    
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 class Record(BaseModel):
     key: str
     value: typing.Any
-    
+
+
 @app.post("/create", response_model=Record)
 def create(record: Record):
     try:
@@ -36,7 +49,7 @@ def get():
     try:
         # OPERATION CACHE
         records = _serilize.read_records()
-        return records
+        return {"data": records}
 
     except Exception as e:
         return e
