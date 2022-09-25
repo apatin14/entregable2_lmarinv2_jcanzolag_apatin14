@@ -15,13 +15,25 @@ class routingTier:
         self.key_buffer = PBKDF2(
             key_name, key_name, 32, count=1000, hmac_hash_module=SHA256)
 
+    def replication(self, key, value):
+        partition_name = 'partition'
+        if(self.current_partition < self.partition_number):
+            partition_name += self.current_partition + 1
+        else:
+            partition_name += 0
+        api_url = self.hash_table.get(partition_name) + "/records/create"
+        response = requests.post(api_url, json={key: key, value: value})
+        return (True, False)[response.json()]
+
     def create_key_value(self, key, value):
         key_name = 'partition' + self.current_partition + ":" + key
         key_hash = self.encrypt(key_name)
-        api_url = self.hash_table.get(
-            'partition' + self.current_partition) + "/records/create"
-        response = requests.post(api_url, json={key: key_hash, value: value})
-        if(response.json()):
+        api_url = self.hash_table.get('partition' + self.current_partition) + "/records/create"
+        response_partition = requests.post(
+            api_url, json={key: key_hash, value: value})
+
+        if(response_partition.json()):
+            response_replication = self.replication(key_hash, value)
             if(self.current_partition >= self.partition_number):
                 self.current_partition = 0
             else:
@@ -29,7 +41,8 @@ class routingTier:
             return {
                 "id": key_hash,
                 "message": "Sucess save key/value",
-                "status": False
+                "status": False,
+                "replication": response_replication
             }
         else:
             return {
@@ -41,8 +54,12 @@ class routingTier:
         try:
             decrypted_data = self.decrypt(id).split(":")
             partition = decrypted_data[0]
+            key = decrypted_data[1]
+            partition_replication = "partition%s" % (int(filter(str.isdigit, partition)) + 1)
             api_url = self.hash_table.get(partition) + "/records/get/" + id
-            response = requests.get(api_url)
+            api_url_replication = self.hash_table.get(
+                partition_replication) + "/records/get/" + id
+            response = requests.get(api_url | api_url_replication.json())
             if(response.json()):
                 return {
                     "key": key,
@@ -66,14 +83,20 @@ class routingTier:
         try:
             decrypted_data = self.decrypt(id).split(":")
             partition = decrypted_data[0]
+            partition_replication = "partition%s" % (int(filter(str.isdigit, partition)) + 1)
             api_url = self.hash_table.get(partition) + "/records/update"
+            api_url_replication = self.hash_table.get(partition_replication) + "/records/update"
             response = requests.get(api_url, json={"key": id, "value": value})
-            if(response.json()):
+            response_replication = requests.get(api_url_replication, json={"key": id, "value": value})
+            if(response.json() | response_replication.json()):
                 return {
                     "message": "Sucess update value",
-                    "status": True
+                    "status": True,
+                    "replication": (True, False)[response_replication.json()]
                 }
             else:
+                response = requests.get(
+                    api_url, json={"key": id, "value": value})
                 return {
                     "message": "Error updating key/value",
                     "status": False
@@ -89,9 +112,12 @@ class routingTier:
         try:
             decrypted_data = self.decrypt(id).split(":")
             partition = decrypted_data[0]
-            api_url = self.hash_table.get(partition) + "/records/delete/"+id
+            partition_replication = "partition%s" % (int(filter(str.isdigit, partition)) + 1)
+            api_url = self.hash_table.get(partition) + "/records/update/" + id
+            api_url_replication = self.hash_table.get(partition_replication) + "/records/delete/"+id
             response = requests.delete(api_url)
-            if(response.json()):
+            response_replication = requests.delete(api_url_replication)
+            if(response.json() | response_replication.json()):
                 return {
                     "message": "Sucess delete key/value",
                     "status": True
