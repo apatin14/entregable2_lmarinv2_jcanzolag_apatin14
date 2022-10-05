@@ -18,11 +18,11 @@
 
 ## 1. breve descripción de la actividad
 
-Versión minimalista o simple de una base de datos distribuida o un sistema de almacenamiento de archivos key,value
+Versión minimalista o simple de una base de datos distribuida o un sistema de almacenamiento de archivos key,value con el uso algoritmos básicos de particionamiento y replicación, para particionamiento se utilzara el mecanismo de claves y para el de replicación se usara un metodo deterministico 
 
 ### 1.1. Que aspectos cumplió o desarrolló de la actividad propuesta por el profesor (requerimientos funcionales y no funcionales)
 
--implementación cliente/servidor con 1 solo servidor
+-Implementación cliente/servidor con 1 solo servidor ROUTING TIER
 -Mecanismo de particionamiento
 -Mecanismo de replicación
 
