@@ -18,15 +18,13 @@
 
 ## 1. breve descripción de la actividad
 
-Desplegar un middleware orientado a mensajes (MOM) con el fin de afianzar los conocimientos
-desarrollados en la sesión de clases.
+Versión minimalista o simple de una base de datos distribuida o un sistema de almacenamiento de archivos key,value
 
 ### 1.1. Que aspectos cumplió o desarrolló de la actividad propuesta por el profesor (requerimientos funcionales y no funcionales)
 
-- Incluir un dispositivo fisico para enviar datos al middleware (MOM)
-- Incluir tres aplicaciones que simulen datos para enviar datos al middleware (MOM)
-- Incluir una aplicacion cliente que almacene los datos del middleware en base de datos
-- Incluir Clientes que consuman los datos emitidos al middleware
+-implementación cliente/servidor con 1 solo servidor
+-Mecanismo de particionamiento
+-Mecanismo de replicación
 
 ### 1.2. Que aspectos NO cumplió o desarrolló de la actividad propuesta por el profesor (requerimientos funcionales y no funcionales)
 
