@@ -1,8 +1,3 @@
-from Crypto.Cipher import AES
-from Crypto.Protocol.KDF import PBKDF2
-from Crypto.Random import get_random_bytes
-from Crypto.Hash import SHA256
-
 """This Python module is an implementation of the SHA-256 algorithm.
 From https://github.com/keanemind/Python-SHA-256"""
 
@@ -19,11 +14,6 @@ K = [
 
 
 class Hashing256:
-
-    def __init__(self):
-        key_name = 'proyecto1'.encode("ascii")
-        self.key_buffer = PBKDF2(key_name, key_name, 32, count=1000, hmac_hash_module=SHA256)
-
     def generate_hash(self, message: bytearray) -> bytearray:
         """Return a SHA-256 hash from the message passed.
         The argument should be a bytes, bytearray, or
@@ -166,18 +156,3 @@ class Hashing256:
     def _rotate_right(self, num: int, shift: int, size: int = 32):
         """Rotate an integer right."""
         return (num >> shift) | (num << size - shift)
-
-    def resize_length(self, string):
-        # resizes the String to a size divisible by 16 (needed for this Cipher)
-        return string.rjust((len(string) // 16 + 1) * 16)
-
-    def encrypt(self, url):
-        # Converts the string to bytes and encodes them with your Cipher
-        cipher = AES.new(self.key_buffer, AES.MODE_CBC)
-        self.iv = cipher.iv
-        return cipher.encrypt(self.resize_length(url).encode())
-
-    def decrypt(self, text):
-        # Converts the string to bytes and decodes them with your Cipher
-        cipher = AES.new(self.key_buffer, AES.MODE_CBC, self.iv)
-        return cipher.decrypt(text).decode().lstrip()
