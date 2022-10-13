@@ -21,10 +21,14 @@ app.add_middleware(
 class Record(BaseModel):
     key: str
     value: typing.Any
+    
+class Path(BaseModel):
+    path_name: str
 
 
 @app.post("/create", response_model=Record)
 def create(record: Record):
+    print(record)
     try:
         _serilize.write_record(record.key, record.value)
         return record
@@ -55,14 +59,11 @@ def get():
         return e
 
 
-@app.put("/update", response_model=Record)
+@app.put("/update")
 def update(record: Record):
     try:
         # OPERATION CACHE
-
-        _serilize.update_record(record.key, record.value)
-
-        return record
+        return _serilize.update_record(record.key, record.value)
 
     except Exception as e:
         return e
@@ -77,5 +78,16 @@ def delete(id: str):
         return{
             "message": "Success"
         }
+    except Exception as e:
+        return e
+
+@app.post("/setPath")
+def create(path: Path):
+    try:
+        _serilize.set_path(path)
+        return {
+            "message": "Success"
+        }
+
     except Exception as e:
         return e

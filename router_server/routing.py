@@ -1,52 +1,52 @@
-from Crypto.Cipher import AES
-from Crypto.Protocol.KDF import PBKDF2
-from Crypto.Hash import SHA256
-from hashTable import HashTable
+from cryptography.fernet import Fernet
+from .hashTable import HashTable
+from dotenv import load_dotenv
 import requests
 
+load_dotenv()
 
 class routingTier:
 
-    def __init__(self, partitions_number):
-        key_name = 'proyecto1'.encode("ascii")
-        self.current_partition = 0
-        self.partition_number = partitions_number
-        self.hash_table = HashTable(partitions_number)
-        self.key_buffer = PBKDF2(
-            key_name, key_name, 32, count=1000, hmac_hash_module=SHA256)
+    def __init__(self):
+        self.current_partition = 1
+        key = Fernet.generate_key()
+        self.fernet = Fernet(key)
 
     def replication(self, key, value):
-        partition_name = 'partition'
-        if(self.current_partition < self.partition_number):
-            partition_name += self.current_partition + 1
-        else:
-            partition_name += 0
-        api_url = self.hash_table.get(partition_name) + "/create"
-        response = requests.post(api_url, json={key: key, value: value})
-        return (True, False)[response.json()]
+        partition_replication_number = self.current_partition + 1 
+        partition_name = "partition%s" % (partition_replication_number, 1)[partition_replication_number > self.partition_number]
+        api_url = "%s/create" % self.hash_table.get(partition_name)
+        response = requests.post(api_url, json={"key": key, "value": value})
+        return (False, True)[response.json() != None]
 
     def create_key_value(self, key, value):
-        key_name = 'partition' + self.current_partition + ":" + key
-        key_hash = self.encrypt(key_name)
-        api_url = self.hash_table.get('partition' + self.current_partition) + "/create"
-        response_partition = requests.post(
-            api_url, json={key: key_hash, value: value})
-
-        if(response_partition.json()):
-            response_replication = self.replication(key_hash, value)
-            if(self.current_partition >= self.partition_number):
-                self.current_partition = 0
+        try:
+            partition = "partition%s" % self.current_partition 
+            key_name = partition + ":" + key
+            key_hash = self.encrypt(key_name)
+            api_url =  "%s/create" % self.hash_table.get(partition)
+            response_partition = requests.post(api_url, json={"key": key, "value": value})
+            if(response_partition.json() != None):
+                response_replication = self.replication(key_hash, value)
+                if(self.current_partition >= self.partition_number):
+                    self.current_partition = 1
+                else:
+                    self.current_partition += 1
+                return {
+                    "id": key_hash,
+                    "message": "Sucess save key/value",
+                    "status": True,
+                    "replication": response_replication
+                }
             else:
-                self.current_partition += 1
+                return {
+                    "message": "Error saving key/value",
+                    "status": False
+                } 
+                
+        except(e):
             return {
-                "id": key_hash,
-                "message": "Sucess save key/value",
-                "status": False,
-                "replication": response_replication
-            }
-        else:
-            return {
-                "message": "Error saving key/value",
+                "message": "Id error value",
                 "status": False
             }
 
@@ -55,18 +55,35 @@ class routingTier:
             decrypted_data = self.decrypt(id).split(":")
             partition = decrypted_data[0]
             key = decrypted_data[1]
-            partition_replication = "partition%s" % (int(filter(str.isdigit, partition)) + 1)
-            api_url = self.hash_table.get(partition) + "/get/" + id
-            api_url_replication = self.hash_table.get(
-                partition_replication) + "/get/" + id
+            partition_replication_number = int(''.join(filter(str.isdigit, partition))) + 1
+            partition_replication =  "partition%s" % (partition_replication_number, 1)[partition_replication_number > self.partition_number]
+            api_url = self.hash_table.get(partition) + "/get/" + key
+            api_url_replication = self.hash_table.get(partition_replication) + "/get/" + key
             response = requests.get(api_url)
             response_replication = requests.get(api_url_replication)
-            if(response.json()|response_replication.json()):
+            if(response.json() != None and response_replication.json() != None):
                 return {
                     "key": key,
-                    "value": response.json() | response_replication.json(),
+                    "value": response.json() ,
                     "message": "Sucess save key/value",
-                    "status": True
+                    "status": True,
+                    "replication": True
+                }
+            elif (response.json()):
+                return {
+                    "key": key,
+                    "value": response.json(),
+                    "message": "Sucess save value only on main",
+                    "status": True,
+                    "replication": False
+                }
+            elif(response_replication.json()):
+                return {
+                    "key": key,
+                    "value": response_replication.json(),
+                    "message": "Sucess save value only on replica",
+                    "status": False,
+                    "replication": True
                 }
             else:
                 return {
@@ -84,20 +101,32 @@ class routingTier:
         try:
             decrypted_data = self.decrypt(id).split(":")
             partition = decrypted_data[0]
-            partition_replication = "partition%s" % (int(filter(str.isdigit, partition)) + 1)
+            partition_replication_number = int(''.join(filter(str.isdigit, partition))) + 1
+            partition_replication = "partition%s" % (partition_replication_number, 1)[partition_replication_number > self.partition_number]
             api_url = self.hash_table.get(partition) + "/update"
             api_url_replication = self.hash_table.get(partition_replication) + "/update"
-            response = requests.get(api_url, json={"key": id, "value": value})
-            response_replication = requests.get(api_url_replication, json={"key": id, "value": value})
-            if(response.json() | response_replication.json()):
+            response = requests.put(api_url, json={"key": id, "value": value})
+            response_replication = requests.put(api_url_replication, json={"key": id, "value": value})
+            print(response.json())
+            if(response.json() != None and response_replication.json() != None):
                 return {
-                    "message": "Sucess update value",
+                    "message": "Sucess update value and replication",
                     "status": True,
-                    "replication": (True, False)[response_replication.json()]
+                    "replication": True
+                }
+            elif (response.json()):
+                return {
+                    "message": "Sucess update value only on main",
+                    "status": True,
+                    "replication": False
+                }
+            elif(response_replication.json()):
+                return {
+                    "message": "Sucess update value only on replica",
+                    "status": False,
+                    "replication": True
                 }
             else:
-                response = requests.get(
-                    api_url, json={"key": id, "value": value})
                 return {
                     "message": "Error updating key/value",
                     "status": False
@@ -113,15 +142,30 @@ class routingTier:
         try:
             decrypted_data = self.decrypt(id).split(":")
             partition = decrypted_data[0]
-            partition_replication = "partition%s" % (int(filter(str.isdigit, partition)) + 1)
-            api_url = self.hash_table.get(partition) + "/update/" + id
-            api_url_replication = self.hash_table.get(partition_replication) + "/delete/"+id
+            key = decrypted_data[1]
+            partition_replication_number = int(''.join(filter(str.isdigit, partition))) + 1
+            partition_replication = "partition%s" % (partition_replication_number, 1)[partition_replication_number > self.partition_number]
+            api_url = self.hash_table.get(partition) + "/delete/" + key
+            api_url_replication = self.hash_table.get(partition_replication) + "/delete/"+key
             response = requests.delete(api_url)
             response_replication = requests.delete(api_url_replication)
-            if(response.json() | response_replication.json()):
+            if(response.json() != None and response_replication.json() != None):
                 return {
                     "message": "Sucess delete key/value",
-                    "status": True
+                    "status": True,
+                    "replication": True
+                }
+            elif (response.json()):
+                return {
+                    "message": "Sucess delete value only on main",
+                    "status": True,
+                    "replication": False
+                }
+            elif(response_replication.json()):
+                return {
+                    "message": "Sucess delete value only on replica",
+                    "status": False,
+                    "replication": True
                 }
             else:
                 return {
@@ -134,18 +178,36 @@ class routingTier:
                 "message": "Id error value",
                 "status": False
             }
+    
+    def set_hash(self, hash):
+        try: 
+            path_couter = 1
+            
+            self.partition_number = int(hash.partition_number)
+            self.hash_table = HashTable(self.partition_number)
+                        
+            while(path_couter <= self.partition_number):
+                path_name = "PATH_%s" % path_couter
+                partition_name = "partition%s" % path_couter
+                partition_url = hash.value[partition_name]
+                self.hash_table.append(partition_name, partition_url)
+                response = requests.post(partition_url+"/setPath", json={"path_name":path_name } )
+                path_couter = path_couter + 1
+                
+                
+            return {
+                "message": "test"
+                
+            }
+        except(e):
+            return {
+                "message": "Id error value",
+                "status": False
+            }
+        
 
-    def resize_length(self, string):
-        # resizes the String to a size divisible by 16 (needed for this Cipher)
-        return string.rjust((len(string) // 16 + 1) * 16)
+    def encrypt(self, text):
+        return self.fernet.encrypt(text.encode()).decode('utf8')
 
-    def encrypt(self, url):
-        # Converts the string to bytes and encodes them with your Cipher
-        cipher = AES.new(self.key_buffer, AES.MODE_CBC)
-        self.iv = cipher.iv
-        return cipher.encrypt(self.resize_length(url).encode())
-
-    def decrypt(self, text):
-        # Converts the string to bytes and decodes them with your Cipher
-        cipher = AES.new(self.key_buffer, AES.MODE_CBC)
-        return cipher.decrypt(text).decode().lstrip()
+    def decrypt(self,text):
+        return self.fernet.decrypt(text).decode()

@@ -8,7 +8,7 @@ class serialize:
 
     def write_record(self, key, value):
         records = self.read_records()
-        outfile = open('records', 'wb')
+        outfile = open(self.path, 'wb')
         try:
             if(records == {}):
                 records = {self.hashing.generate_hash(key): value}
@@ -24,7 +24,7 @@ class serialize:
     def read_records(self):
         records = {}
         try:
-            infile = open('records', 'rb')
+            infile = open(self.path, 'rb')
             records = pickle.load(infile)
             infile.close()
         except FileNotFoundError:
@@ -42,7 +42,7 @@ class serialize:
 
     def update_record(self, key, value):
         records = self.read_records()
-        outfile = open('records', 'wb')
+        outfile = open(self.path, 'wb')
         try:
             if (records[self.hashing.generate_hash(key)] != None):
                 records[self.hashing.generate_hash(key)] = value
@@ -56,7 +56,7 @@ class serialize:
 
     def delete_record(self, key):
         records = self.read_records()
-        outfile = open('records', 'wb')
+        outfile = open(self.path, 'wb')
         try:
             if (records[self.hashing.generate_hash(key)] != None):
                 del records[self.hashing.generate_hash(key)]
@@ -67,3 +67,6 @@ class serialize:
         outfile.close()
 
         return True
+    
+    def set_path(self, path):
+        self.path = path.path_name + '/records'
