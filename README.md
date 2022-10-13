@@ -14,17 +14,19 @@
 
 ## Actividad:
 
-- Entregable 2
+- Entregable Proyecto 1 - Final
 
 ## 1. breve descripción de la actividad
 
-Versión minimalista o simple de una base de datos distribuida o un sistema de almacenamiento de archivos key,value con el uso algoritmos básicos de particionamiento y replicación, para particionamiento se utilzara el mecanismo de claves y para el de replicación se usara un metodo deterministico 
+Desplegar un servidor con particionamiento y replicación con el fin de afianzar los conocimientos
+desarrollados en la sesión de clases.
 
 ### 1.1. Que aspectos cumplió o desarrolló de la actividad propuesta por el profesor (requerimientos funcionales y no funcionales)
 
--Implementación cliente/servidor con 1 solo servidor ROUTING TIER
--Mecanismo de particionamiento
--Mecanismo de replicación
+- Implementacion de API y routingtire
+- Guardado de datos en varias particiones (Base de datos en cache)
+- Replicacion de datos en las diferentes particiones (Base de datos en cache)
+- Incluir una interfaz de usuario para el uso del sistema
 
 ### 1.2. Que aspectos NO cumplió o desarrolló de la actividad propuesta por el profesor (requerimientos funcionales y no funcionales)
 
@@ -33,21 +35,9 @@ Versión minimalista o simple de una base de datos distribuida o un sistema de a
 
 ### como se compila y ejecuta.
 
-#### Proveedor 1
+#### Main class
 
-- py sensorServer.py
-
-#### Proveedor 2
-
-- py tempServer.py
-
-#### Cliente 1
-
-- py sensorClient.py
-
-#### Proveedor 2
-
-- py tempClient.py
+- py main.py
 
 ### detalles del desarrollo.
 
@@ -57,36 +47,47 @@ El desarrollo esta generado en python con una arquitectura Cliente/Servidor, en 
 
 - 📁./
 -  |
-- ├─💽sensorClient.py
-- ├─💽sensorServer.py
-- ├─💽tempServer.py
-- ├─💽tempClient.py
+- ├─📁db_client
+    ├─💽app.py
+    ├─💽hashing256.py
+    ├─💽serialize.py
+- ├─📁router_server
+    ├─💽hashTable.py
+    ├─💽routing.py
+- ├─📁routes
+    ├─💽record_routes.py
+- ├─📁schemas
+    ├─💽record.py
 - ├─💽.env
 - ├─💽README.MD
+- ├─💽main.py
+- ├─💽requirements.txt
+- ├─💽
 
 
 ## 4. Descripción del ambiente de EJECUCIÓN (en producción) lenguaje de programación, librerias, paquetes, etc, con sus numeros de versiones.
 
-Lista de requisitos de python [aca](https://github.com/apatin14/lab2-apatin14_jcanzolag/blob/master/requirements.txt)
+Lista de requisitos de python [aca](https://github.com/apatin14/entregable2_lmarinv2_jcanzolag_apatin14/blob/master/requirements.txt)
 
 ## IP o nombres de dominio en nube o en la máquina servidor.
 
-[Lab1-apatin](https://lab1-apatin14.herokuapp.com/)
+[proyecto1](52.204.153.196)
 
 ## como se lanza el servidor.
 
-Ejecutando el comando para el servidor del Sensor: py sensorServer.py
-Ejecutando el comando para el cliente del Sensor: py sensorClient.py
-Ejecutando el comando para el servidor de Temperatura: py tempServer.py
-Ejecutando el comando para el cliente de Temperatura: py tempClient.py
+Ejecutando el comando para lanzar la instancia de AWS
+Ejecutando el comando para hacer reload del nginx
+Ejecutando el comando para lanzar el servicio de gunicorn
+
+
 
 ## una mini guia de como un usuario utilizaría el software o la aplicación
 
-Se puede abrir la direccion https://lab1-apatin14.herokuapp.com, acontinuacion debe agregar /{{filename}}.{{fileextension}} dentro de la misma url
+Se puede abrir la direccion https://52.204.153.196, acontinuacion debe agregar /docs dentro de la misma url
 
 en caso de ser encontrado el servidor mostrar el archivo
 en caso contrario monstrar la pantalla de error 404
 
 si se accede bajo un protocolo no valido mostrar un error
 
-#### versión README.md -> 1.0 (2022-agosto)
+#### versión README.md -> 1.0 (2022-Octubre)
